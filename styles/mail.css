@@ -80,6 +80,12 @@
     opacity: 1;
 }
 
+.add {
+    background-color: blue;
+    border-color: blue;
+    color: #FFFFFF
+}
+
 .delete {
     background-color: red;
     border-color: red;

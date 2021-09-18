@@ -1,171 +1,124 @@
+// import { NodeArray } from "typescript";
+
+/////////////////////////////////////////////////////////// State
 type stateType = {
+    typeWindow: 'edit' | 'add' | null,
     idEditElem: string,
-}
+};
 
 const state: stateType = {
+    typeWindow: null,
     idEditElem: '',
-}
-// const templateElemOfRecipe: string = `<div class="book__elem" id=${}>    <p class="book__title" id=""> ${} </p>      <div class="book__content"> <h3 class="book__content-title">Ingredients</h3> <hr class="book__content-line">      <ul class="book__content-list"> ${} </ul> <div class="book__content-btns">         <div class="book__content-btn btn edit" id="btnOpenWindowForEdit" onclick="openWindow(windowForEdit) ;state.idEditElem = event.target.getAttribute('data-id-parent');" data-id-parent=${}>Edit</div>    <div class="book__content-btn btn delete" id="btnDelete" onclick="">Delete</div>      </div></div></div>`;
-
-/////////////////////////////////////////////////////////// CONSTS
-
-const windowForAddRecipe: HTMLElement = document.querySelector('#windowForAddRecipe');
-const windowForEditRecipe: HTMLElement = document.querySelector('#windowForEditRecipe');
-
-//    btnDeleteRecipe
-const btnAddRecipe: HTMLElement = document.querySelector('#btnAddRecipe');
-const btnEditRecipe: HTMLElement = document.querySelector('#btnEditRecipe');
-
-const btnOpenWindowForAdd: HTMLElement = document.querySelector('#btnOpenWindowForAdd');
-//    btnOpenWindowForEdit
-
-const btnCloseWindowForAddRecipe: HTMLElement = document.querySelector('#btnCloseWindowForAddRecipe');
-const btnCloseWindowForEditRecipe: HTMLElement = document.querySelector('#btnCloseWindowForEditRecipe');
-
-
-
-
-
+};
+/////////////////////////////////////////////////////////// Consts
 const listRecipes: HTMLElement = document.querySelector('#listRecipes');
 
-///////////////////////////////////////////////////////////
+const windowForSettingRecipe: HTMLElement = document.querySelector('#windowForSettingRecipe');
 
+const btnAcceptSettings: HTMLElement = document.querySelector('#btnAcceptSettings');
+const btnOpenWindow: HTMLElement     = document.querySelector('#btnOpenWindow');
+const btnCloseWindow: HTMLElement    = document.querySelector('#btnCloseWindow');
 
-/////////////////////////////////////////////////////////// Events window for add
-// const elem = '<li class="fieldEnterOfIngredients__elem">hello hello <span class="fieldEnterOfIngredients__elem-delete"></span></li>';
-const btnArrowOfWindow = document.querySelector('.fieldEnterOfIngredients__enter');
-const inputTextOfWindow: any = document.querySelector('.fieldEnterOfIngredients__text');
-const listElemsInWindowForAdd: HTMLElement = document.querySelector('#listElemsInWindowForAdd');
-const inputTitleInWindowForAdd: HTMLElement = document.querySelector('#inputTitleInWindowForAdd');
+const btnArrowOfWindow                 = document.querySelector('#btnArrowOfWindow');
+const inputNameIngredientInWindow: any = document.querySelector('#inputNameIngredientInWindow');
 
-const btnArrowOfWindowEdit = document.querySelector('#btnArrowOfWindowEdit');
-const inputTextOfWindowEdit: any = document.querySelector('#inputTextOfWindowEdit');
-const listElemsInWindowForEdit: HTMLElement = document.querySelector('#listElemsInWindowForEdit');
-const inputTitleInWindowForEdit: HTMLElement = document.querySelector('#inputTitleInWindowForEdit');
-
-
+const inputTitleInWindow: HTMLElement           = document.querySelector('#inputTitleInWindow');
+const listElemsIngredientsInWindow: HTMLElement = document.querySelector('#listElemsIngredientsInWindow');
+/////////////////////////////////////////////////////////// Events
 btnArrowOfWindow.addEventListener('click', () => {
-    let text: string = inputTextOfWindow.value
-    addInList(text)
+    let text: string = inputNameIngredientInWindow.value;
+    addInList(text);
 })
 
-btnOpenWindowForAdd.addEventListener('click', () => {
-    openWindow(windowForAddRecipe)
+btnOpenWindow.addEventListener('click', () => {
+    state.typeWindow = 'add';
+    openWindow(windowForSettingRecipe);
 })
 
-btnCloseWindowForAddRecipe.addEventListener('click', () => {
-    closeWindow(windowForAddRecipe)
+btnCloseWindow.addEventListener('click', () => {
+    state.typeWindow = null;
+    closeWindow(windowForSettingRecipe);
 })
 
-btnCloseWindowForEditRecipe.addEventListener('click', () => {
-    closeWindow(windowForEditRecipe)
+btnAcceptSettings.addEventListener('click', () => {
+    if (state.typeWindow === 'add') {
+        createCard();
+    }
+    if (state.typeWindow === 'edit') {
+        editCard();
+    }
 })
-
 ///////////////////////////////////////////////////////////
+function parserForWindow(elemWithTitle: any, listParent: HTMLElement): Array < string | string[] > {
+    const arrLiIngredients: Array < string > = [];
+    const elems: NodeList                    = listParent.childNodes;
+    const title: string                      = elemWithTitle.value;
 
-function parserForWindow(elemWithTitle, listParent) {
-    const arrIngredients = [];
-    const elems = listParent.childNodes
-    const title = elemWithTitle.value
-
-    elems.forEach(e => {
-        arrIngredients.push(e.textContent)
+    elems.forEach((e, i) => {
+        arrLiIngredients.push(e.textContent);
     });
 
-    return [title, arrIngredients]
+    return [title, arrLiIngredients];
 }
 
-function createCard() {
-    const [title, arrIngredients] = parserForWindow(inputTitleInWindowForAdd, listElemsInWindowForAdd);
-    const id = 'A' + (Math.floor(Math.random() * 11 + Math.random() * 10)) + "B"
-    const templateOfCard: string = `<div class="book__elem" id=${id}> <p class="book__title" id="id"> ${title} </p> <div class="book__content"> <h3 class="book__content-title">Ingredients</h3> <hr class="book__content-line">      <ul class="book__content-list"> ${createElemsForList(arrIngredients)} </ul> <div class="book__content-btns">         <div class="book__content-btn btn edit" id="btnOpenWindowForEdit" onclick="openWindow(windowForEditRecipe) ;state.idEditElem = event.target.getAttribute('data-id-parent');" data-id-parent=${id}>Edit</div>    <div class="book__content-btn btn delete" id="btnDelete" onclick="removeRecipe(event)">Delete</div>      </div></div></div>`
+function createCard(): void {
+    const [title, arrIngredients] = parserForWindow(inputTitleInWindow, listElemsIngredientsInWindow);
+    const id: string              = 'A' + (Math.floor(Math.random() * 11 + Math.random() * 10)) + "B";
+    const templateOfCard: string  = `<div class="book__elem" id=${id}> <p class="book__title" id="id"> ${title} </p><div class="book__content"> <h3 class="book__content-title">Ingredients</h3> <hr class="book__content-line"><ul class="book__content-list"> ${createElemsForList(arrIngredients)} </ul> <div class="book__content-btns">         <div class="book__content-btn btn edit" id="windowForSettingRecipe" onclick="state.typeWindow = 'edit'; openWindow(windowForSettingRecipe) ;state.idEditElem = event.target.getAttribute('data-id-parent');" data-id-parent=${id}>Edit</div><div class="book__content-btn btn delete" id="btnDelete" onclick="removeRecipe(event)">Delete</div></div></div></div>`;
+    listRecipes.insertAdjacentHTML('beforeend', templateOfCard);
 
-    listRecipes.insertAdjacentHTML('beforeend', templateOfCard)
-
-    btnAddRecipe.removeEventListener('click', createCard)
-    closeWindow(windowForAddRecipe)
-    setTimeout(() => btnAddRecipe.addEventListener('click', createCard), 1500)
+    state.typeWindow = null;
+    closeWindow(windowForSettingRecipe);
 }
 
-function createElemsForList(arr) {
-    let result = '';
+function createElemsForList(arr): string {
+    let result: string = '';
     arr.forEach(ingredient => {
-        result += `<li class="book__content-list-elem">${ingredient}</li>`
+        result += `<li class="book__content-list-elem">${ingredient}</li>`;
     })
-
-    return result
+    return result;
 }
 
-function editCard(e) {
-    console.log('str')
-    const [title, arrIngredients] = parserForWindow(inputTitleInWindowForEdit, listElemsInWindowForEdit);
-    console.log([title, arrIngredients])
-    const id = state.idEditElem
-    console.log(`#${id}`)
-    const elemForEdit = document.querySelector(`#${id}`)
-    console.log(`#${id}`, elemForEdit)
-    elemForEdit.innerHTML = `<p class="book__title" id="id"> ${title} </p> <div class="book__content"> <h3 class="book__content-title">Ingredients</h3> <hr class="book__content-line">      <ul class="book__content-list"> ${createElemsForList(arrIngredients)} </ul> <div class="book__content-btns">         <div class="book__content-btn btn edit" id="btnOpenWindowForEdit" onclick="openWindow(windowForEditRecipe) ;state.idEditElem = event.target.getAttribute('data-id-parent');" data-id-parent=${id}>Edit</div>    <div class="book__content-btn btn delete" id="btnDelete" onclick="removeRecipe(event)">Delete</div>      </div></div>`
-    closeWindow(windowForEditRecipe)
+function editCard(): void {
+    const [title, arrIngredients]  = parserForWindow(inputTitleInWindow, listElemsIngredientsInWindow);
+    const id: string               = state.idEditElem;
+    const elemForEdit: HTMLElement = document.querySelector(`#${id}`);
+          elemForEdit.innerHTML    = ` <p class="book__title" id="id"> ${title} </p><div class="book__content"><h3 class="book__content-title">Ingredients</h3> <hr class="book__content-line"><ul class="book__content-list">${createElemsForList(arrIngredients)}</ul><div class="book__content-btns"><div class="book__content-btn btn edit" id="windowForSettingRecipe" onclick="state.typeWindow = 'edit'; openWindow(windowForSettingRecipe) ;state.idEditElem = event.target.getAttribute('data-id-parent');" data-id-parent=${id}>Edit</div><div class="book__content-btn btn delete" id="btnDelete" onclick="removeRecipe(event)">Delete</div></div></div>`;
+
+    state.typeWindow = null;
+    closeWindow(windowForSettingRecipe);
 }
-
-
-/////////////////////////////////////////////////////////// Events
-
-btnAddRecipe.addEventListener('click', createCard)
-
-btnEditRecipe.addEventListener('click', editCard)
-
-
-
-
-
-/////////////////////////////////////////////////////////// FUNCTIONS  recipe
-function removeRecipe(e) {
-    e.target
+/////////////////////////////////////////////////////////// fnDelet
+function removeRecipe(event): void {
+    event.target
         .parentNode
         .parentNode
         .parentNode
-        .remove()
+        .remove();
 }
-
-
-
-/////////////////////////////////////////////////////////// window show/hide
-function openWindow(elem) {
-    elem.style.display = 'block'
+/////////////////////////////////////////////////////////// show/hide
+function openWindow(elem): void {
+    elem.style.display = 'block';
     elem.style.opacity = '1';
 }
 
-function closeWindow(elem) {
+function closeWindow(elem): void {
     elem.style.opacity = '0';
-    setTimeout(() => {
-        elem.style.display = 'none'
-    }, 1500)
+    setTimeout(() => elem.style.display = 'none', 1000);
 }
-/////////////////////////////////////////////////////////// window
-function addInList(text) {
-    const elem: string = `<li class="fieldEnterOfIngredients__elem"> ${text} <span class="fieldEnterOfIngredients__elem-delete" onclick="deleteInList(event)"></span></li>`
-    listElemsInWindowForAdd.insertAdjacentHTML('beforeend', elem)
+/////////////////////////////////////////////////////////// fnWindowList
+function addInList(text): void {
+    const elem: string = `<li class="fieldEnterOfIngredients__elem"> ${text} <span class="fieldEnterOfIngredients__elem-delete" onclick="deleteInList(event)"></span></li>`;
+    listElemsIngredientsInWindow.insertAdjacentHTML('beforeend', elem);
 }
 
-function deleteInList(event) {
+function deleteInList(event): void {
     event.target
         .parentNode
-        .remove()
+        .remove();
 }
-///////////////////////////////////////////////////////////
-function addInListEdit(text) {
-    const elem: string = `<li class="fieldEnterOfIngredients__elem"> ${text} <span class="fieldEnterOfIngredients__elem-delete" onclick="deleteInList(event)"></span></li>`
-    listElemsInWindowForEdit.insertAdjacentHTML('beforeend', elem)
+/////////////////////////////////////////////////////////// init
+function init(): void {
+    listElemsIngredientsInWindow.innerHTML = null
 }
-
-function deleteInListEdit(event) {
-    event.target
-        .parentNode
-        .remove()
-}
-
-btnArrowOfWindowEdit.addEventListener('click', () => {
-    let text: string = inputTextOfWindowEdit.value
-    addInListEdit(text)
-})
+init()
