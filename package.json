@@ -7,6 +7,8 @@
   },
   "author": "Stukach Danila <stuk200910@mail.ru>",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "typescript": "^4.4.3"
+  },
   "description": ""
 }

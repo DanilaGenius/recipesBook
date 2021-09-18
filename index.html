@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,40 +8,68 @@
     <link rel="stylesheet" href="styles/mail.css">
     <title>Book of dishes</title>
 </head>
+
 <body>
     <div class="container">
         <div class="book">
-            <div class="book__list">
-                <div class="book__elem">
-                    <p class="book__title">
-                        Name1
-                    </p>
-                    <div class="book__content">
-                        <h3 class="book__content-title">name ingredient</h3>
-                        <hr class="book__content-line">
-                        <ul class="book__content-list">
-                            <li class="book__content-list-elem">
-                                ingredient
-                            </li>
-                            <li class="book__content-list-elem">
-                                ingredient
-                            </li>
-                            <li class="book__content-list-elem">
-                                ingredient
-                            </li>
-                        </ul>
-
-                        <div class="book__content-btns">
-                            <div class="book__content-btn btn" style="background-color: red; border-color: red; color: #FFFFFF" >Edit</div>
-                            <div class="book__content-btn btn" style="background-color: rgb(230, 217, 217); border-color: black; color: black">Delete</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="book__list" id="listRecipes">
             </div>
-
             <hr>
-            <div class="book__add-btn btn" style="background-color: blue; border-color: blue; color: #FFFFFF">Add recipe</div>
+            <div class="book__add-btn btn" id="btnOpenWindowForAdd"
+                style="background-color: blue; border-color: blue; color: #FFFFFF">Add recipe</div>
         </div>
     </div>
+
+    <div class="windowForSettingRecipe" id="windowForAddRecipe">
+        <h3 class="windowForSettingRecipe__title">Setting recipe</h3>
+        <hr class="windowForSettingRecipe__line">
+        <div class="windowForSettingRecipe__form">
+            <label class="windowForSettingRecipe__label" for="nameRecipe">Enter name for recipe</label>
+            <input class="windowForSettingRecipe__input" type="text" name="nameRecipe" id="inputTitleInWindowForAdd">
+            <label class="windowForSettingRecipe__label" for="">Enter ingredients for recipe</label>
+
+            <div class="windowForSettingRecipe__fieldEnterOfIngredients">
+                <div class="fieldEnterOfIngredients__top">
+                    <p class="fieldEnterOfIngredients__label">Write ingredient:</p>
+                    <input class="fieldEnterOfIngredients__text" contenteditable="true" maxlength='30'>
+                    <img class="fieldEnterOfIngredients__enter" src="./images/left-arrow.png">
+                </div>
+                <ul class="fieldEnterOfIngredients__list" id="listElemsInWindowForAdd">
+
+                </ul>
+            </div>
+
+            <button class="windowForSettingRecipe__btn btn" id="btnAddRecipe">Ok</button>
+        </div>
+        <div class="closeWindowForSettingRecipe" id="btnCloseWindowForAddRecipe"></div>
+    </div>
+
+    <div class="windowForSettingRecipe" id="windowForEditRecipe">
+        <h3 class="windowForSettingRecipe__title">Setting recipe</h3>
+        <hr class="windowForSettingRecipe__line">
+        <div class="windowForSettingRecipe__form">
+            <label class="windowForSettingRecipe__label" for="nameRecipe">Enter name for recipe</label>
+            <input class="windowForSettingRecipe__input" type="text" name="nameRecipe" id="inputTitleInWindowForEdit">
+            <label class="windowForSettingRecipe__label" for="">Enter ingredients for recipe</label>
+
+            <div class="windowForSettingRecipe__fieldEnterOfIngredients">
+                <div class="fieldEnterOfIngredients__top">
+                    <p class="fieldEnterOfIngredients__label">Write ingredient:</p>
+                    <input class="fieldEnterOfIngredients__text" contenteditable="true" maxlength='30'
+                        id="inputTextOfWindowEdit">
+                    <img class="fieldEnterOfIngredients__enter" src="./images/left-arrow.png" id="btnArrowOfWindowEdit">
+                </div>
+                <ul class="fieldEnterOfIngredients__list" id="listElemsInWindowForEdit">
+
+                </ul>
+            </div>
+
+            <button class="windowForSettingRecipe__btn btn" id="btnEditRecipe">Ok</button>
+        </div>
+        <div class="closeWindowForSettingRecipe" id="btnCloseWindowForEditRecipe"></div>
+    </div>
+
+    <script src="scripts/main.js"></script>
 </body>
+
 </html>
