@@ -3,6 +3,20 @@ var state = {
     typeWindow: null,
     idEditElem: ''
 };
+/////////////////////////////////////////////////////////// templates
+function templateCard(id, title, arrIngredients, option) {
+    if (option === void 0) { option = ''; }
+    var insidesOfElem = "<p class=\"book__title\" id=\"id\" onclick=\"ShowHideCardContent(event)\"> " + title + " </p><div class=\"book__content\" data-card-content> <h3 class=\"book__content-title\">Ingredients</h3> <hr class=\"book__content-line\"><ul class=\"book__content-list\"> " + createElemsForList(arrIngredients) + " </ul> <div class=\"book__content-btns\"><div class=\"book__content-btn btn edit\" id=\"windowForSettingRecipe\" onclick=\"state.idEditElem = event.target.getAttribute('data-id-parent'); state.typeWindow = 'edit'; EntryDataInWindowForSettingRecipe(state.typeWindow); openWindow(windowForSettingRecipe) ;\" data-id-parent=" + id + ">Edit</div><div class=\"book__content-btn btn delete\" id=\"btnDelete\" onclick=\"removeRecipe(event)\">Delete</div></div></div>";
+    if (option === 'mini') {
+        return insidesOfElem;
+    }
+    else {
+        return "<div class=\"book__elem\" id=" + id + "> " + insidesOfElem + "</div>";
+    }
+}
+function templateElemOfListWindow(text) {
+    return "<li class=\"fieldEnterOfIngredients__elem\"> " + text + " <span class=\"fieldEnterOfIngredients__elem-delete\" onclick=\"deleteInList(event)\"></span></li>";
+}
 /////////////////////////////////////////////////////////// Consts
 var listRecipes = document.querySelector('#listRecipes');
 var windowForSettingRecipe = document.querySelector('#windowForSettingRecipe');
@@ -16,10 +30,14 @@ var listElemsIngredientsInWindow = document.querySelector('#listElemsIngredients
 /////////////////////////////////////////////////////////// Events
 btnArrowOfWindow.addEventListener('click', function () {
     var text = inputNameIngredientInWindow.value;
+    if (text.trim() === '')
+        return;
     addInList(text);
+    inputNameIngredientInWindow.value = '';
 });
 btnOpenWindow.addEventListener('click', function () {
     state.typeWindow = 'add';
+    EntryDataInWindowForSettingRecipe(state.typeWindow);
     openWindow(windowForSettingRecipe);
 });
 btnCloseWindow.addEventListener('click', function () {
@@ -47,7 +65,7 @@ function parserForWindow(elemWithTitle, listParent) {
 function createCard() {
     var _a = parserForWindow(inputTitleInWindow, listElemsIngredientsInWindow), title = _a[0], arrIngredients = _a[1];
     var id = 'A' + (Math.floor(Math.random() * 11 + Math.random() * 10)) + "B";
-    var templateOfCard = "<div class=\"book__elem\" id=" + id + "> <p class=\"book__title\" id=\"id\"> " + title + " </p><div class=\"book__content\"> <h3 class=\"book__content-title\">Ingredients</h3> <hr class=\"book__content-line\"><ul class=\"book__content-list\"> " + createElemsForList(arrIngredients) + " </ul> <div class=\"book__content-btns\">         <div class=\"book__content-btn btn edit\" id=\"windowForSettingRecipe\" onclick=\"state.typeWindow = 'edit'; openWindow(windowForSettingRecipe) ;state.idEditElem = event.target.getAttribute('data-id-parent');\" data-id-parent=" + id + ">Edit</div><div class=\"book__content-btn btn delete\" id=\"btnDelete\" onclick=\"removeRecipe(event)\">Delete</div></div></div></div>";
+    var templateOfCard = templateCard(id, title, arrIngredients);
     listRecipes.insertAdjacentHTML('beforeend', templateOfCard);
     state.typeWindow = null;
     closeWindow(windowForSettingRecipe);
@@ -63,7 +81,7 @@ function editCard() {
     var _a = parserForWindow(inputTitleInWindow, listElemsIngredientsInWindow), title = _a[0], arrIngredients = _a[1];
     var id = state.idEditElem;
     var elemForEdit = document.querySelector("#" + id);
-    elemForEdit.innerHTML = " <p class=\"book__title\" id=\"id\"> " + title + " </p><div class=\"book__content\"><h3 class=\"book__content-title\">Ingredients</h3> <hr class=\"book__content-line\"><ul class=\"book__content-list\">" + createElemsForList(arrIngredients) + "</ul><div class=\"book__content-btns\"><div class=\"book__content-btn btn edit\" id=\"windowForSettingRecipe\" onclick=\"state.typeWindow = 'edit'; openWindow(windowForSettingRecipe) ;state.idEditElem = event.target.getAttribute('data-id-parent');\" data-id-parent=" + id + ">Edit</div><div class=\"book__content-btn btn delete\" id=\"btnDelete\" onclick=\"removeRecipe(event)\">Delete</div></div></div>";
+    elemForEdit.innerHTML = templateCard(id, title, arrIngredients, 'mini');
     state.typeWindow = null;
     closeWindow(windowForSettingRecipe);
 }
@@ -86,7 +104,7 @@ function closeWindow(elem) {
 }
 /////////////////////////////////////////////////////////// fnWindowList
 function addInList(text) {
-    var elem = "<li class=\"fieldEnterOfIngredients__elem\"> " + text + " <span class=\"fieldEnterOfIngredients__elem-delete\" onclick=\"deleteInList(event)\"></span></li>";
+    var elem = templateElemOfListWindow(text);
     listElemsIngredientsInWindow.insertAdjacentHTML('beforeend', elem);
 }
 function deleteInList(event) {
@@ -94,8 +112,46 @@ function deleteInList(event) {
         .parentNode
         .remove();
 }
+///////////////////////////////////////////////////////////
+function EntryDataInWindowForSettingRecipe(typeOfOperation) {
+    if (typeOfOperation === 'add') {
+        inputTitleInWindow.value = '';
+        inputNameIngredientInWindow.value = '';
+        listElemsIngredientsInWindow.innerHTML = '';
+    }
+    if (typeOfOperation === 'edit') {
+        var _a = parsingDataWithWindowForSettingRecipe(), title = _a[0], arrIngredients = _a[1];
+        inputTitleInWindow.value = title;
+        inputNameIngredientInWindow.value = '';
+        listElemsIngredientsInWindow.innerHTML = '';
+        arrIngredients.forEach(function (text) {
+            listElemsIngredientsInWindow.innerHTML += templateElemOfListWindow(text);
+        });
+    }
+}
+function parsingDataWithWindowForSettingRecipe() {
+    var elemCard = document.querySelector("#" + state.idEditElem);
+    var textTitle = elemCard.querySelector('.book__title').textContent;
+    var arrElemWitdNameIngredients = elemCard.querySelectorAll('.book__content-list-elem');
+    var title = textTitle;
+    var arrIngredients = [];
+    arrElemWitdNameIngredients.forEach(function (e) {
+        arrIngredients.push(e.textContent);
+    });
+    return [title, arrIngredients];
+}
+///////////////////////////////////////////////////////////
+function ShowHideCardContent(event) {
+    var elemWithContent = event.target.parentNode.querySelector('[data-card-content]');
+    if (elemWithContent.style.display === 'none') {
+        elemWithContent.style.display = 'block';
+        return;
+    }
+    elemWithContent.style.display = 'none';
+}
 /////////////////////////////////////////////////////////// init
 function init() {
     listElemsIngredientsInWindow.innerHTML = null;
 }
 init();
+///////////////////////////////////////////////////////////
