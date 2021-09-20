@@ -194,7 +194,7 @@
     position: relative;
     margin: 0 0 5px 0;
     padding: 7px 0 7px 0;
-    border: solid 1px red;
+    cursor: move;
 }
 
 .fieldEnterOfIngredients__elem-delete {
@@ -246,4 +246,8 @@
     background-position: center;
     transform: scale(50%);
     cursor: pointer;
+}
+
+.dragSelected {
+    border: solid 1px red;
 }

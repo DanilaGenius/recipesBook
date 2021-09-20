@@ -10,18 +10,19 @@ const state: stateType = {
     typeWindow: null,
     idEditElem: '',
 };
-/////////////////////////////////////////////////////////// templates
+/////////////////////////////////////////////////////////// templates dragstart
+// event.target.classList.add(`selected`);
 function templateCard(id, title, arrIngredients, option = '') {
-    const insidesOfElem: string = `<p class="book__title" id="id" onclick="ShowHideCardContent(event)"> ${title} </p><div class="book__content" data-card-content> <h3 class="book__content-title">Ingredients</h3> <hr class="book__content-line"><ul class="book__content-list"> ${createElemsForList(arrIngredients)} </ul> <div class="book__content-btns"><div class="book__content-btn btn edit" id="windowForSettingRecipe" onclick="state.idEditElem = event.target.getAttribute('data-id-parent'); state.typeWindow = 'edit'; EntryDataInWindowForSettingRecipe(state.typeWindow); openWindow(windowForSettingRecipe) ;" data-id-parent=${id}>Edit</div><div class="book__content-btn btn delete" id="btnDelete" onclick="removeRecipe(event)">Delete</div></div></div>`
+    const insidesOfElem: string = `<p class="book__title" id="id" onclick="ShowHideCardContent(event)"> ${title} </p><div class="book__content" data-card-content> <h3 class="book__content-title">Ingredients</h3> <hr class="book__content-line"><ul class="book__content-list"> ${createElemsForList(arrIngredients)} </ul> <div class="book__content-btns"><div class="book__content-btn btn edit" id="windowForSettingRecipe" onclick="state.idEditElem = event.target.getAttribute('data-id-parent'); state.typeWindow = 'edit'; EntryDataInWindowForSettingRecipe(state.typeWindow); openWindow(windowForSettingRecipe) ;" data-id-parent=${id}>Edit</div><div class="book__content-btn btn delete" id="btnDelete" onclick="removeRecipe(event)" data-id-parent=${id}>Delete</div></div></div>`
     if (option === 'mini') {
         return insidesOfElem
     } else {
-        return `<div class="book__elem" id=${id}> ${insidesOfElem}</div>`
+        return `<div class="book__elem" id=${id}>${insidesOfElem}</div>`
     }
 }
 
 function templateElemOfListWindow(text) {
-    return `<li class="fieldEnterOfIngredients__elem"> ${text} <span class="fieldEnterOfIngredients__elem-delete" onclick="deleteInList(event)"></span></li>`
+    return `<li class="fieldEnterOfIngredients__elem" draggable="true" id="windowListElem" ondragstart="event.target.classList.add('dragSelected');" ondragend="event.target.classList.remove('dragSelected');"> ${text} <span class="fieldEnterOfIngredients__elem-delete" onclick="deleteInList(event)"></span></li>`
 }
 /////////////////////////////////////////////////////////// Consts
 const listRecipes: HTMLElement = document.querySelector('#listRecipes');
@@ -85,6 +86,11 @@ function createCard(): void {
 
     state.typeWindow = null;
     closeWindow(windowForSettingRecipe);
+    setCardInStorage({
+        id,
+        title,
+        arrIngredients,
+    })
 }
 
 function createElemsForList(arr): string {
@@ -103,6 +109,7 @@ function editCard(): void {
 
     state.typeWindow = null;
     closeWindow(windowForSettingRecipe);
+    EditCardInStorage(id, title, arrIngredients)
 }
 /////////////////////////////////////////////////////////// fnDelet
 function removeRecipe(event): void {
@@ -111,6 +118,8 @@ function removeRecipe(event): void {
         .parentNode
         .parentNode
         .remove();
+
+    deletCardInStorage(event.target.getAttribute('data-id-parent'))  
 }
 /////////////////////////////////////////////////////////// show/hide
 function openWindow(elem): void {
@@ -178,9 +187,72 @@ function ShowHideCardContent(event) {
     }
     elemWithContent.style.display = 'none'
 }
+/////////////////////////////////////////////////////////// storage
+function setCardInStorage(objWithData) {
+    const cardsValue = JSON.parse(localStorage.getItem('cards')) || [];
+    cardsValue.push(objWithData)
+    console.log(cardsValue)
+    localStorage.setItem('cards', JSON.stringify(cardsValue));
+    console.log(objWithData)
+}
+
+function createCardWithStorage() {
+    const cards = JSON.parse(localStorage.cards)
+
+    if (cards === [] || cards === [null]) return
+
+    cards.forEach(objectWithData => {
+        const id = objectWithData.id;
+        const title = objectWithData.title;
+        const arrIngredients = objectWithData.arrIngredients;
+        const templateOfCard: string  = templateCard(id, title, arrIngredients);
+        listRecipes.insertAdjacentHTML('beforeend', templateOfCard);
+    })
+}
+
+function deletCardInStorage(id) {
+    const cardsValue = JSON.parse(localStorage.cards)
+    const cardsValueNew = cardsValue.filter(e => e.id !== id)
+        
+    localStorage.setItem('cards', JSON.stringify(cardsValueNew));
+}
+
+function EditCardInStorage(id, title, arrIngredients) {
+    console.log('1', id, title, arrIngredients)
+    const cardsValue = JSON.parse(localStorage.cards)
+    const cardsValueNew = cardsValue.map(elem => {
+        if (elem.id === id) {
+            elem.title = title;
+            elem.arrIngredients = arrIngredients;
+        }
+        return elem
+    })
+        
+    localStorage.setItem('cards', JSON.stringify(cardsValueNew));
+}
+/////////////////////////////////////////////////////////// drag-drop
+listElemsIngredientsInWindow.addEventListener('dragover', (event) =>  dragoverForList(event))
+
+function dragoverForList(event) {
+    event.preventDefault()
+    const activeElement = listElemsIngredientsInWindow.querySelector(`.dragSelected`);
+    const currentElement = event.target;
+
+    if (currentElement.id !== 'windowListElem') return
+
+    const nextElement = (currentElement === activeElement.nextElementSibling) ?
+      currentElement.nextElementSibling :
+      currentElement;
+    
+    listElemsIngredientsInWindow.insertBefore(activeElement, nextElement);
+}
+
+
 /////////////////////////////////////////////////////////// init
 function init(): void {
     listElemsIngredientsInWindow.innerHTML = null
+
+    createCardWithStorage()
 }
 init()
 

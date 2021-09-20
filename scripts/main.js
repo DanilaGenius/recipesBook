@@ -3,19 +3,20 @@ var state = {
     typeWindow: null,
     idEditElem: ''
 };
-/////////////////////////////////////////////////////////// templates
+/////////////////////////////////////////////////////////// templates dragstart
+// event.target.classList.add(`selected`);
 function templateCard(id, title, arrIngredients, option) {
     if (option === void 0) { option = ''; }
-    var insidesOfElem = "<p class=\"book__title\" id=\"id\" onclick=\"ShowHideCardContent(event)\"> " + title + " </p><div class=\"book__content\" data-card-content> <h3 class=\"book__content-title\">Ingredients</h3> <hr class=\"book__content-line\"><ul class=\"book__content-list\"> " + createElemsForList(arrIngredients) + " </ul> <div class=\"book__content-btns\"><div class=\"book__content-btn btn edit\" id=\"windowForSettingRecipe\" onclick=\"state.idEditElem = event.target.getAttribute('data-id-parent'); state.typeWindow = 'edit'; EntryDataInWindowForSettingRecipe(state.typeWindow); openWindow(windowForSettingRecipe) ;\" data-id-parent=" + id + ">Edit</div><div class=\"book__content-btn btn delete\" id=\"btnDelete\" onclick=\"removeRecipe(event)\">Delete</div></div></div>";
+    var insidesOfElem = "<p class=\"book__title\" id=\"id\" onclick=\"ShowHideCardContent(event)\"> " + title + " </p><div class=\"book__content\" data-card-content> <h3 class=\"book__content-title\">Ingredients</h3> <hr class=\"book__content-line\"><ul class=\"book__content-list\"> " + createElemsForList(arrIngredients) + " </ul> <div class=\"book__content-btns\"><div class=\"book__content-btn btn edit\" id=\"windowForSettingRecipe\" onclick=\"state.idEditElem = event.target.getAttribute('data-id-parent'); state.typeWindow = 'edit'; EntryDataInWindowForSettingRecipe(state.typeWindow); openWindow(windowForSettingRecipe) ;\" data-id-parent=" + id + ">Edit</div><div class=\"book__content-btn btn delete\" id=\"btnDelete\" onclick=\"removeRecipe(event)\" data-id-parent=" + id + ">Delete</div></div></div>";
     if (option === 'mini') {
         return insidesOfElem;
     }
     else {
-        return "<div class=\"book__elem\" id=" + id + "> " + insidesOfElem + "</div>";
+        return "<div class=\"book__elem\" id=" + id + ">" + insidesOfElem + "</div>";
     }
 }
 function templateElemOfListWindow(text) {
-    return "<li class=\"fieldEnterOfIngredients__elem\"> " + text + " <span class=\"fieldEnterOfIngredients__elem-delete\" onclick=\"deleteInList(event)\"></span></li>";
+    return "<li class=\"fieldEnterOfIngredients__elem\" draggable=\"true\" id=\"windowListElem\" ondragstart=\"event.target.classList.add('dragSelected');\" ondragend=\"event.target.classList.remove('dragSelected');\"> " + text + " <span class=\"fieldEnterOfIngredients__elem-delete\" onclick=\"deleteInList(event)\"></span></li>";
 }
 /////////////////////////////////////////////////////////// Consts
 var listRecipes = document.querySelector('#listRecipes');
@@ -69,6 +70,11 @@ function createCard() {
     listRecipes.insertAdjacentHTML('beforeend', templateOfCard);
     state.typeWindow = null;
     closeWindow(windowForSettingRecipe);
+    setCardInStorage({
+        id: id,
+        title: title,
+        arrIngredients: arrIngredients
+    });
 }
 function createElemsForList(arr) {
     var result = '';
@@ -84,6 +90,7 @@ function editCard() {
     elemForEdit.innerHTML = templateCard(id, title, arrIngredients, 'mini');
     state.typeWindow = null;
     closeWindow(windowForSettingRecipe);
+    EditCardInStorage(id, title, arrIngredients);
 }
 /////////////////////////////////////////////////////////// fnDelet
 function removeRecipe(event) {
@@ -92,6 +99,7 @@ function removeRecipe(event) {
         .parentNode
         .parentNode
         .remove();
+    deletCardInStorage(event.target.getAttribute('data-id-parent'));
 }
 /////////////////////////////////////////////////////////// show/hide
 function openWindow(elem) {
@@ -149,9 +157,60 @@ function ShowHideCardContent(event) {
     }
     elemWithContent.style.display = 'none';
 }
+/////////////////////////////////////////////////////////// storage
+function setCardInStorage(objWithData) {
+    var cardsValue = JSON.parse(localStorage.getItem('cards')) || [];
+    cardsValue.push(objWithData);
+    console.log(cardsValue);
+    localStorage.setItem('cards', JSON.stringify(cardsValue));
+    console.log(objWithData);
+}
+function createCardWithStorage() {
+    var cards = JSON.parse(localStorage.cards);
+    if (cards === [] || cards === [null])
+        return;
+    cards.forEach(function (objectWithData) {
+        var id = objectWithData.id;
+        var title = objectWithData.title;
+        var arrIngredients = objectWithData.arrIngredients;
+        var templateOfCard = templateCard(id, title, arrIngredients);
+        listRecipes.insertAdjacentHTML('beforeend', templateOfCard);
+    });
+}
+function deletCardInStorage(id) {
+    var cardsValue = JSON.parse(localStorage.cards);
+    var cardsValueNew = cardsValue.filter(function (e) { return e.id !== id; });
+    localStorage.setItem('cards', JSON.stringify(cardsValueNew));
+}
+function EditCardInStorage(id, title, arrIngredients) {
+    console.log('1', id, title, arrIngredients);
+    var cardsValue = JSON.parse(localStorage.cards);
+    var cardsValueNew = cardsValue.map(function (elem) {
+        if (elem.id === id) {
+            elem.title = title;
+            elem.arrIngredients = arrIngredients;
+        }
+        return elem;
+    });
+    localStorage.setItem('cards', JSON.stringify(cardsValueNew));
+}
+/////////////////////////////////////////////////////////// drag-drop
+listElemsIngredientsInWindow.addEventListener('dragover', function (event) { return dragoverForList(event); });
+function dragoverForList(event) {
+    event.preventDefault();
+    var activeElement = listElemsIngredientsInWindow.querySelector(".dragSelected");
+    var currentElement = event.target;
+    if (currentElement.id !== 'windowListElem')
+        return;
+    var nextElement = (currentElement === activeElement.nextElementSibling) ?
+        currentElement.nextElementSibling :
+        currentElement;
+    listElemsIngredientsInWindow.insertBefore(activeElement, nextElement);
+}
 /////////////////////////////////////////////////////////// init
 function init() {
     listElemsIngredientsInWindow.innerHTML = null;
+    createCardWithStorage();
 }
 init();
 ///////////////////////////////////////////////////////////
