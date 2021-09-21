@@ -19,6 +19,7 @@ function templateElemOfListWindow(text) {
     return "<li class=\"fieldEnterOfIngredients__elem\" draggable=\"true\" id=\"windowListElem\" ondragstart=\"event.target.classList.add('dragSelected');\" ondragend=\"event.target.classList.remove('dragSelected');\"> " + text + " <span class=\"fieldEnterOfIngredients__elem-delete\" onclick=\"deleteInList(event)\"></span></li>";
 }
 /////////////////////////////////////////////////////////// Consts
+var documentBody = document.documentElement;
 var listRecipes = document.querySelector('#listRecipes');
 var windowForSettingRecipe = document.querySelector('#windowForSettingRecipe');
 var btnAcceptSettings = document.querySelector('#btnAcceptSettings');
@@ -28,13 +29,16 @@ var btnArrowOfWindow = document.querySelector('#btnArrowOfWindow');
 var inputNameIngredientInWindow = document.querySelector('#inputNameIngredientInWindow');
 var inputTitleInWindow = document.querySelector('#inputTitleInWindow');
 var listElemsIngredientsInWindow = document.querySelector('#listElemsIngredientsInWindow');
+var builderOfIngredientsInWindow = document.querySelector('.fieldEnterOfIngredients__top');
+var widthWindowOfBrowser = documentBody.getBoundingClientRect().width;
 /////////////////////////////////////////////////////////// Events
 btnArrowOfWindow.addEventListener('click', function () {
-    var text = inputNameIngredientInWindow.value;
-    if (text.trim() === '')
-        return;
-    addInList(text);
-    inputNameIngredientInWindow.value = '';
+    addIngredientInBuilder();
+});
+builderOfIngredientsInWindow.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+        addIngredientInBuilder();
+    }
 });
 btnOpenWindow.addEventListener('click', function () {
     state.typeWindow = 'add';
@@ -46,6 +50,8 @@ btnCloseWindow.addEventListener('click', function () {
     closeWindow(windowForSettingRecipe);
 });
 btnAcceptSettings.addEventListener('click', function () {
+    if (inputTitleInWindow.value.trim() === '')
+        return;
     if (state.typeWindow === 'add') {
         createCard();
     }
@@ -53,6 +59,7 @@ btnAcceptSettings.addEventListener('click', function () {
         editCard();
     }
 });
+listElemsIngredientsInWindow.addEventListener('dragover', function (event) { return dragoverForList(event); });
 ///////////////////////////////////////////////////////////
 function parserForWindow(elemWithTitle, listParent) {
     var arrLiIngredients = [];
@@ -103,17 +110,38 @@ function removeRecipe(event) {
 }
 /////////////////////////////////////////////////////////// show/hide
 function openWindow(elem) {
-    elem.style.display = 'block';
-    elem.style.opacity = '1';
+    elem.style.display = 'flex';
+    documentBody.style.overflow = 'hidden';
+    elem.style.top = documentBody.scrollTop + 'px';
+    takeIntoAccountScroll();
 }
 function closeWindow(elem) {
-    elem.style.opacity = '0';
-    setTimeout(function () { return elem.style.display = 'none'; }, 1000);
+    elem.style.display = 'none';
+    documentBody.style.overflow = 'auto';
+    takeIntoAccountScroll();
+}
+function takeIntoAccountScroll() {
+    // const widthWindowOfBrowserWithScroll = documentBody.getBoundingClientRect().width;
+    // const difference = widthWindowOfBrowser - widthWindowOfBrowserWithScroll;
+    // console.log(difference)
+    // if (difference <= 0) {
+    //     return
+    // } else {
+    //     if (documentBody.style.paddingRight === '' || documentBody.style.paddingRight === '0px') {
+    //         documentBody.style.paddingRight = difference + 'px';
+    //     } else {
+    //         documentBody.style.paddingRight = '0px';
+    //     } 
+    // }
 }
 /////////////////////////////////////////////////////////// fnWindowList
-function addInList(text) {
+function addIngredientInBuilder() {
+    var text = inputNameIngredientInWindow.value;
+    if (text.trim() === '')
+        return;
     var elem = templateElemOfListWindow(text);
     listElemsIngredientsInWindow.insertAdjacentHTML('beforeend', elem);
+    inputNameIngredientInWindow.value = '';
 }
 function deleteInList(event) {
     event.target
@@ -161,9 +189,7 @@ function ShowHideCardContent(event) {
 function setCardInStorage(objWithData) {
     var cardsValue = JSON.parse(localStorage.getItem('cards')) || [];
     cardsValue.push(objWithData);
-    console.log(cardsValue);
     localStorage.setItem('cards', JSON.stringify(cardsValue));
-    console.log(objWithData);
 }
 function createCardWithStorage() {
     var cards = JSON.parse(localStorage.cards);
@@ -183,7 +209,6 @@ function deletCardInStorage(id) {
     localStorage.setItem('cards', JSON.stringify(cardsValueNew));
 }
 function EditCardInStorage(id, title, arrIngredients) {
-    console.log('1', id, title, arrIngredients);
     var cardsValue = JSON.parse(localStorage.cards);
     var cardsValueNew = cardsValue.map(function (elem) {
         if (elem.id === id) {
@@ -195,7 +220,6 @@ function EditCardInStorage(id, title, arrIngredients) {
     localStorage.setItem('cards', JSON.stringify(cardsValueNew));
 }
 /////////////////////////////////////////////////////////// drag-drop
-listElemsIngredientsInWindow.addEventListener('dragover', function (event) { return dragoverForList(event); });
 function dragoverForList(event) {
     event.preventDefault();
     var activeElement = listElemsIngredientsInWindow.querySelector(".dragSelected");

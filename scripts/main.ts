@@ -25,6 +25,8 @@ function templateElemOfListWindow(text) {
     return `<li class="fieldEnterOfIngredients__elem" draggable="true" id="windowListElem" ondragstart="event.target.classList.add('dragSelected');" ondragend="event.target.classList.remove('dragSelected');"> ${text} <span class="fieldEnterOfIngredients__elem-delete" onclick="deleteInList(event)"></span></li>`
 }
 /////////////////////////////////////////////////////////// Consts
+const documentBody = document.documentElement;
+
 const listRecipes: HTMLElement = document.querySelector('#listRecipes');
 
 const windowForSettingRecipe: HTMLElement = document.querySelector('#windowForSettingRecipe');
@@ -38,12 +40,19 @@ const btnArrowOfWindow = document.querySelector('#btnArrowOfWindow');
 const inputNameIngredientInWindow: any          = document.querySelector('#inputNameIngredientInWindow');
 const inputTitleInWindow: any                   = document.querySelector('#inputTitleInWindow');
 const listElemsIngredientsInWindow: HTMLElement = document.querySelector('#listElemsIngredientsInWindow');
+
+const builderOfIngredientsInWindow: HTMLElement = document.querySelector('.fieldEnterOfIngredients__top');
+
+const widthWindowOfBrowser: any = documentBody.getBoundingClientRect().width;
 /////////////////////////////////////////////////////////// Events
 btnArrowOfWindow.addEventListener('click', () => {
-    let text: string = inputNameIngredientInWindow.value;
-    if (text.trim() === '') return
-    addInList(text);
-    inputNameIngredientInWindow.value = '';
+    addIngredientInBuilder()
+})
+
+builderOfIngredientsInWindow.addEventListener('keydown', (event: any) => {
+    if (event.key === 'Enter') {
+        addIngredientInBuilder()
+    }
 })
 
 btnOpenWindow.addEventListener('click', () => {
@@ -58,6 +67,8 @@ btnCloseWindow.addEventListener('click', () => {
 })
 
 btnAcceptSettings.addEventListener('click', () => {
+    if (inputTitleInWindow.value.trim() === '') return
+
     if (state.typeWindow === 'add') {
         createCard();
     }
@@ -65,6 +76,8 @@ btnAcceptSettings.addEventListener('click', () => {
         editCard();
     }
 })
+
+listElemsIngredientsInWindow.addEventListener('dragover', (event) => dragoverForList(event))
 ///////////////////////////////////////////////////////////
 function parserForWindow(elemWithTitle: any, listParent: HTMLElement): Array < string | string[] > {
     const arrLiIngredients: Array < string > = [];
@@ -119,22 +132,28 @@ function removeRecipe(event): void {
         .parentNode
         .remove();
 
-    deletCardInStorage(event.target.getAttribute('data-id-parent'))  
+    deletCardInStorage(event.target.getAttribute('data-id-parent'))
 }
 /////////////////////////////////////////////////////////// show/hide
-function openWindow(elem): void {
-    elem.style.display = 'block';
-    elem.style.opacity = '1';
+function openWindow(elem: HTMLElement): void {
+    elem.style.display          = 'flex';
+    documentBody.style.overflow = 'hidden';
+    elem.style.top              = documentBody.scrollTop + 'px';
 }
 
-function closeWindow(elem): void {
-    elem.style.opacity = '0';
-    setTimeout(() => elem.style.display = 'none', 1000);
+function closeWindow(elem: HTMLElement): void {
+    elem.style.display          = 'none';
+    documentBody.style.overflow = 'auto';
 }
 /////////////////////////////////////////////////////////// fnWindowList
-function addInList(text): void {
-    const elem: string = templateElemOfListWindow(text); 
+function addIngredientInBuilder(): void {
+    let text: string = inputNameIngredientInWindow.value;
+    if (text.trim() === '') return;
+
+    const elem: string = templateElemOfListWindow(text);
     listElemsIngredientsInWindow.insertAdjacentHTML('beforeend', elem);
+
+    inputNameIngredientInWindow.value = '';
 }
 
 function deleteInList(event): void {
@@ -143,7 +162,7 @@ function deleteInList(event): void {
         .remove();
 }
 ///////////////////////////////////////////////////////////
-function EntryDataInWindowForSettingRecipe(typeOfOperation: 'add' | 'edit') {
+function EntryDataInWindowForSettingRecipe(typeOfOperation: 'add' | 'edit'): void {
     if (typeOfOperation === 'add') {
         inputTitleInWindow.value               = '';
         inputNameIngredientInWindow.value      = '';
@@ -162,7 +181,7 @@ function EntryDataInWindowForSettingRecipe(typeOfOperation: 'add' | 'edit') {
     }
 }
 
-function parsingDataWithWindowForSettingRecipe() {
+function parsingDataWithWindowForSettingRecipe(): Array < any > {
     const elemCard                   = document.querySelector(`#${state.idEditElem}`);
     const textTitle                  = elemCard.querySelector('.book__title').textContent;
     const arrElemWitdNameIngredients = elemCard.querySelectorAll('.book__content-list-elem');
@@ -178,7 +197,7 @@ function parsingDataWithWindowForSettingRecipe() {
 }
 
 ///////////////////////////////////////////////////////////
-function ShowHideCardContent(event) {
+function ShowHideCardContent(event): void {
     const elemWithContent = event.target.parentNode.querySelector('[data-card-content]')
 
     if (elemWithContent.style.display === 'none') {
@@ -188,72 +207,64 @@ function ShowHideCardContent(event) {
     elemWithContent.style.display = 'none'
 }
 /////////////////////////////////////////////////////////// storage
-function setCardInStorage(objWithData) {
+function setCardInStorage(objWithData: object): void {
     const cardsValue = JSON.parse(localStorage.getItem('cards')) || [];
-    cardsValue.push(objWithData)
-    console.log(cardsValue)
+    cardsValue.push(objWithData);
     localStorage.setItem('cards', JSON.stringify(cardsValue));
-    console.log(objWithData)
 }
 
-function createCardWithStorage() {
-    const cards = JSON.parse(localStorage.cards)
+function createCardWithStorage(): void {
+    const cards = JSON.parse(localStorage.cards);
 
-    if (cards === [] || cards === [null]) return
+    if (cards === [] || cards === [null]) return;
 
     cards.forEach(objectWithData => {
-        const id = objectWithData.id;
-        const title = objectWithData.title;
-        const arrIngredients = objectWithData.arrIngredients;
-        const templateOfCard: string  = templateCard(id, title, arrIngredients);
+        const id                     = objectWithData.id;
+        const title                  = objectWithData.title;
+        const arrIngredients         = objectWithData.arrIngredients;
+        const templateOfCard: string = templateCard(id, title, arrIngredients);
         listRecipes.insertAdjacentHTML('beforeend', templateOfCard);
     })
 }
 
 function deletCardInStorage(id) {
-    const cardsValue = JSON.parse(localStorage.cards)
-    const cardsValueNew = cardsValue.filter(e => e.id !== id)
-        
+    const cardsValue    = JSON.parse(localStorage.cards);
+    const cardsValueNew = cardsValue.filter(e => e.id !== id);
+
     localStorage.setItem('cards', JSON.stringify(cardsValueNew));
 }
 
-function EditCardInStorage(id, title, arrIngredients) {
-    console.log('1', id, title, arrIngredients)
-    const cardsValue = JSON.parse(localStorage.cards)
+function EditCardInStorage(id: string, title: string | string[], arrIngredients: string | string[]): void {
+    const cardsValue    = JSON.parse(localStorage.cards)
     const cardsValueNew = cardsValue.map(elem => {
         if (elem.id === id) {
-            elem.title = title;
+            elem.title          = title;
             elem.arrIngredients = arrIngredients;
         }
         return elem
-    })
-        
+    });
+
     localStorage.setItem('cards', JSON.stringify(cardsValueNew));
 }
 /////////////////////////////////////////////////////////// drag-drop
-listElemsIngredientsInWindow.addEventListener('dragover', (event) =>  dragoverForList(event))
-
-function dragoverForList(event) {
-    event.preventDefault()
-    const activeElement = listElemsIngredientsInWindow.querySelector(`.dragSelected`);
+function dragoverForList(event): void {
+    event.preventDefault();
+    const activeElement  = listElemsIngredientsInWindow.querySelector(`.dragSelected`);
     const currentElement = event.target;
 
-    if (currentElement.id !== 'windowListElem') return
+    if (currentElement.id !== 'windowListElem') return;
 
     const nextElement = (currentElement === activeElement.nextElementSibling) ?
-      currentElement.nextElementSibling :
-      currentElement;
-    
+        currentElement.nextElementSibling: 
+        currentElement;
+
     listElemsIngredientsInWindow.insertBefore(activeElement, nextElement);
 }
-
-
 /////////////////////////////////////////////////////////// init
 function init(): void {
-    listElemsIngredientsInWindow.innerHTML = null
+    listElemsIngredientsInWindow.innerHTML = null;
 
-    createCardWithStorage()
+    createCardWithStorage();
 }
-init()
-
+init();
 ///////////////////////////////////////////////////////////
